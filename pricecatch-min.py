@@ -7,14 +7,14 @@ import urllib.request
 import linecache
 
 now = datetime.datetime.now()
-now.strftime('%H:%M')
-nowtime = now.strftime('%H:%M')
+now.strftime('%Y-%m-%d %H:%M:%S')
+nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
 print(nowtime)
 
 
 url = "http://www.btctrade.com"
 webdata = []
-webdata = urllib.request.urlopen(url).read()
+webdata = urllib.request.urlopen(url,timeout=10).read()
 soup = BeautifulSoup(webdata,"html.parser")
 priceline = str(soup.find(id="rate-btc"))
 #抓取比特币价格网页
