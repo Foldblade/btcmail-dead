@@ -10,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 import mimetypes
 import csv
+import json
 
 now = datetime.datetime.now()
 now.strftime('%Y-%m-%d %H:%M:%S')
@@ -99,6 +100,9 @@ def outercontent(name):
 '''
     return(contentpart)
 
+f = open(os.getcwd() + '/mailsetting.json', 'r')
+mailjson = json.load(f)
+f.close()
 
 def mailto(receivers):
     for people in receivers:
@@ -106,11 +110,12 @@ def mailto(receivers):
         message = MIMEMultipart()
 
         # 第三方 SMTP 服务
-        mail_host = "smtp.email.com"  # SMTP服务器
-        mail_user = "'email1@email.com'"  # 用户名
-        mail_pass = "yourpassword"  # 密码
+        smtp_host = mailjson["smtp_host"]  # SMTP服务器
+        smtp_port = mailjson["smtp_port"]
+        smtp_user = mailjson["smtp_user"]  # 用户名
+        smtp_passwd = mailjson["smtp_passwd"]  # 密码
 
-        sender = 'email1@email.com'  # 发件人邮箱(最好写全, 不然会失败)
+        sender = mailjson["sender"]  # 发件人邮箱(最好写全, 不然会失败)
         receiver = [people]
         print(receiver)
 
@@ -138,15 +143,14 @@ def mailto(receivers):
             message.attach(file_msg)  # 设置根容器属性
 
         try:
-            smtpObj = smtplib.SMTP_SSL(mail_host, 465)  # 启用SSL发信, 端口一般是465
-            smtpObj.login(mail_user, mail_pass)  # 登录验证
+            smtpObj = smtplib.SMTP_SSL(smtp_host, smtp_port)  # 启用SSL发信, 端口一般是465
+            smtpObj.login(smtp_user, smtp_passwd)  # 登录验证
             smtpObj.sendmail(sender, receiver, message.as_string())  # 发送
             print(people + "'s mail has been send successfully.")
         except smtplib.SMTPException as e:
             print(e)
     return()
 
-mailto(['email1@email.com','email2@email.com'])
-# 接收邮件，可设置多个并私密发送。如['email1@email.com','email2@email.com']
 
-
+print(mailjson["receivers"])
+mailto(mailjson["receivers"])
