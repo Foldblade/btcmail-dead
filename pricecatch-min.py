@@ -1,4 +1,4 @@
-#encoding:utf-8
+# encoding:utf-8
 
 import datetime
 import pandas as pd
@@ -12,50 +12,42 @@ nowmin = now.strftime('%M')
 print(nowtime)
 
 
-url = "http://api.btctrade.com/api/ticker?coin=btc"
-webdata = str(urllib.request.urlopen(url,timeout=10).read())
-#抓取比特币价格网页
+def priceget(name):
+  url = "http://api.btctrade.com/api/ticker?coin=" + name
+  webdata = str(urllib.request.urlopen(url,timeout=10).read())
+  #抓取比特币价格网页
+  
+  print(webdata)
+  
+  a = int(webdata.find('"last":'))
+  #print(lastlocation)
+  b = int(webdata.find(',"vol"'))
+  #print(vollocation)
+  price = webdata[int(a+7):int(b)]
+  
+  if price[0:1] == '"' :
+    price2=price[1:]
+    price=price2
+    #纠错,最原始的一个可能bug
+  #print(price)
+  return(price)
+  #价格提取
 
-print(webdata)
-
-a = int(webdata.find('"last":'))
-#print(lastlocation)
-b =int(webdata.find(',"vol"'))
-#print(vollocation)
-btcprice=webdata[int(a+7):int(b)]
-
-if btcprice[0:1] == '"' :
-    btcprice2=btcprice[1:]
-    btcprice=btcprice2
-#纠错,最原始的一个可能bug
+btcprice = priceget('btc')
+ethprice = priceget('eth')
+ltcprice = priceget('ltc')
 print(btcprice)
-#比特币价格提取
+print(ethprice)
+print(ltcprice)
+#结果输出
 
-
-btcpriceold = linecache.getline('data/pricelog-min.csv',1441)
-btcpriceold = btcpriceold[int(btcpriceold.find(','))+1:]
-print('last price:' + btcpriceold)
-
-print('now price:' + btcprice)
 
 data=pd.read_csv('data/pricelog-min.csv')
 data=data.drop(0)
 data.to_csv('data/pricelog-min.csv',sep=",",index=False)
 #删价格首行
 f=open('data/pricelog-min.csv','a+')
-f.write( nowtime + ',' + btcprice)
+f.write( nowtime + ',' + btcprice + ',' + ethprice + ',' + ltcprice)
 f.close()
 #记录价格
 print('record done!')
-
-if nowmin == '00' :
-    data = pd.read_csv('data/pricelog-monh.csv')
-    data = data.drop(0)
-    data.to_csv('data/pricelog-monh.csv', sep=",", index=False)
-    # 删价格首行
-    f = open('data/pricelog-monh.csv', 'a+')
-    f.write(nowtime + ',' + btcprice)
-    f.close()
-    # 记录价格
-#此段为日后升级开发打下基础
-exit()
