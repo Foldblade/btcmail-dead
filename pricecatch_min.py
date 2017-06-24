@@ -88,4 +88,4 @@ f.close()
 
 print('record done!')
 
-import analyse.py
+# import analyse.py
