@@ -1,0 +1,58 @@
+{
+    "eth": {
+        "sell": 2441,
+        "pre_buy": 2442.38,
+        "buy": 2437.41,
+        "vol": "51722.93",
+        "pre_vol": 51622,
+        "trend": 208,
+        "previous": 2444.0,
+        "price": 2441,
+        "pre_sell": 2442.39
+    },
+    "doge": {
+        "sell": 0.022,
+        "pre_buy": 0.02203,
+        "buy": 0.02195,
+        "vol": "1688139184.99000",
+        "pre_vol": 1678104872,
+        "trend": 208,
+        "previous": 0.02203,
+        "price": 0.022,
+        "pre_sell": 0.02204
+    },
+    "ltc": {
+        "sell": 340.99,
+        "pre_buy": 340.31,
+        "buy": 340.2,
+        "vol": "301013.15",
+        "pre_vol": 300221,
+        "trend": 208,
+        "previous": 341.5,
+        "price": 340.99,
+        "pre_sell": 341.5
+    },
+    "ybc": {
+        "sell": 59.89,
+        "pre_buy": 59.94,
+        "buy": 59.77,
+        "vol": "328529.25",
+        "pre_vol": 328795,
+        "trend": 208,
+        "previous": 59.95,
+        "price": 59.89,
+        "pre_sell": 59.95
+    },
+    "time": "2017-06-22 22:53:52",
+    "btc": {
+        "sell": 19750,
+        "pre_buy": 19660.01,
+        "buy": 19662,
+        "vol": 1103.41,
+        "pre_vol": 1105,
+        "trend": 208,
+        "previous": 19660.0,
+        "price": 19662,
+        "pre_sell": 19777.0
+    }
+}
