@@ -1,117 +1,104 @@
 # encoding:utf-8
 import os
+import pandas
+import csv
 import matplotlib as mpl
+import numpy
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import datetime
-from matplotlib.ticker import  MultipleLocator
+from matplotlib.ticker import MultipleLocator
 import matplotlib.dates as mdate
-import pandas
-import csv
+import os
+import json
+
+where_script = os.path.split(os.path.realpath(__file__))[0]
 
 now = datetime.datetime.now()
 now.strftime('%Y-%m-%d %H:%M')
 nowtime = now.strftime('%Y-%m-%d %H:%M')
 print(nowtime)
 
-def  pricelog(name):
-    global x, date, y, pricelist, average
-    with open("data/pricelog-min.csv") as csvfile:
+coins = ['btc', 'eth', 'ltc', 'doge', 'ybc']
+f = open(where_script + '/setting.json', 'r')
+setting = json.load(f)
+f.close()
+for coin in coins:
+    if setting[coin]['draw'] == 0:
+        coins.remove(coin)
+    else :
+        pass
+# print(coins)
+
+def  pricelog(coin):
+    global date, pricelist, vollist, average, length
+
+    with open("data/pricelog_min.csv") as csvfile:
         reader = csv.DictReader(csvfile)
         date = [row['time'] for row in reader]
+        # print(len(date))
         csvfile.close()
-    x = date
-    with open("data/pricelog-min.csv") as csvfile:
+
+    with open("data/pricelog_min.csv") as csvfile:
         reader = csv.DictReader(csvfile)
-        pricelist = [row[ name ] for row in reader]
+        pricelist = [row[ str(coin) ] for row in reader]
+        # print(len(pricelist))
         csvfile.close()
-    y = pricelist
+
+    with open("data/pricelog_min.csv") as csvfile:
+        reader = csv.DictReader(csvfile)
+        vollist = [row[ str(coin)+'_vol' ] for row in reader]
+        # print(len(vollist))
+        csvfile.close()
+
+    f = open("data/pricelog_min.csv",'r')
+    length = len(f.readlines())-1
+    f.close()
+    # print(length)
 
     sum = 0
     for obj in pricelist:
         sum = sum + float(obj)
     # print(sum)
-    average = sum / 1440
+    average = sum / length
     average = round(average, 3)
     print('average=', average)
     # 求平均值
-    return(x, date, y, pricelist, average)
+    return date, pricelist, average
 
 
-'''
-fig=plt.figure(figsize=(36,9),dpi=200)
-
-
-pricelog('btc')
-xmajorLocator = MultipleLocator(1)
-ax1=fig.add_subplot(131)
-ax1.xaxis.set_major_formatter(mdate.DateFormatter('%H:%M'))#设置时间标签显示格式
-plt.xticks(pandas.date_range(date[0],date[-1],freq='60min'))#时间间隔
-plt.xticks(rotation=90)
-plt.xticks(fontsize = 10)
-ax1.set_xlabel('Time', size=15)
-ax1.set_ylabel('Price/¥', size=15)
-ax1.set_title('BTC Price Daily'+'\n'+ nowtime, size=20)
-ax1.plot(x,y,linewidth=1.0,label='price')
-ax1.plot(x,[average for obj in x],linewidth=1.0,label='average')
-ax1.legend(loc='upper right')
-ax1.grid(True)
-
-pricelog('eth')
-xmajorLocator = MultipleLocator(1)
-ax2=fig.add_subplot(132)
-ax2.xaxis.set_major_formatter(mdate.DateFormatter('%H:%M'))#设置时间标签显示格式
-plt.xticks(pandas.date_range(date[0],date[-1],freq='60min'))#时间间隔
-plt.xticks(rotation=90)
-plt.xticks(fontsize = 10)
-ax2.set_xlabel('Time', size=15)
-ax2.set_ylabel('Price/¥', size=15)
-ax2.set_title('ETH Price Daily'+'\n'+ nowtime, size=20)
-ax2.plot(x,y,linewidth=1.0,label='price')
-ax2.plot(x,[average for obj in x],linewidth=1.0,label='average')
-ax2.legend(loc='upper right')
-ax2.grid(True)
-
-pricelog('ltc')
-xmajorLocator = MultipleLocator(1)
-ax3=fig.add_subplot(133)
-ax3.xaxis.set_major_formatter(mdate.DateFormatter('%H:%M'))#设置时间标签显示格式
-plt.xticks(pandas.date_range(date[0],date[-1],freq='60min'))#时间间隔
-plt.xticks(rotation=90)
-plt.xticks(fontsize = 10)
-ax3.set_xlabel('Time', size=15)
-ax3.set_ylabel('Price/¥', size=15)
-ax3.set_title('LTC Price Daily'+'\n'+ nowtime, size=20)
-ax3.plot(x,y,linewidth=1.0,label='price')
-ax3.plot(x,[average for obj in x],linewidth=1.0,label='average')
-ax3.legend(loc='upper right')
-ax3.grid(True)
-
-
-plt.savefig(os.getcwd() + "/data/pricepicture.png",dpi=150)
-print('drawing successed!')
-'''
-
-def draw(name):
-    fig = plt.figure(figsize=(12, 9), dpi=200)
-    pricelog(name)
-    xmajorLocator = MultipleLocator(1)
+def draw(coin):
+    fig = plt.figure(figsize=(21, 9), dpi=200)
+    pricelog(coin)
+    # xmajorLocator = MultipleLocator(1)
     ax1 = fig.add_subplot(111)
     ax1.xaxis.set_major_formatter(mdate.DateFormatter('%H:%M'))  # 设置时间标签显示格式
-    plt.xticks(pandas.date_range(date[0], date[-1], freq='60min'))  # 时间间隔
-    plt.xticks(rotation=90)
-    plt.xticks(fontsize=10)
-    ax1.set_xlabel('Time', size=15)
+    plt.xticks(pandas.date_range(date[0], date[-1], freq='10min'))  # 时间间隔
+    plt.xticks(rotation=90, fontsize=8)
+    ax1.set_xlabel('Time (freq=10min)', size=15)
     ax1.set_ylabel('Price/¥', size=15)
-    ax1.set_title(name.upper() + ' Price Daily' + '\n' + nowtime, size=20)
-    ax1.plot(x, y, linewidth=1.0, label='price')
-    ax1.plot(x, [average for obj in x], linewidth=1.0, label='average')
-    ax1.legend(loc='upper right')
+    ax1.set_title(coin.upper() + ' Price Daily' + '\n' + nowtime, size=20)
+    ax1.plot(date, pricelist, linewidth=1.0, label='Price')
+    ax1.plot(date, [average for obj in date], linewidth=1.0, linestyle='-.',label='Average')
+    ax1.legend(loc='upper left')
     ax1.grid(True)
-    plt.savefig(os.getcwd() + '/data/'+ name + '.png', dpi=150)
-    print('drawing successed!')
+
+    ax2 = ax1.twinx()
+    ax2.xaxis.set_major_formatter(mdate.DateFormatter('%H:%M'))  # 设置时间标签显示格式
+    plt.xticks(pandas.date_range(date[0], date[-1], freq='10min'))  # 时间间隔
+    ax2.plot(date, vollist, linewidth=2.0, label='Vol', color='g', linestyle=':',alpha=0.8)
+    #ax2.fill_between(date, vollist,y2=0, color='g', alpha=.25)
+    #ax2.fill(date, vollist)
+    #ax2.hist(range(length), vollist, normed=1, histtype='bar', rwidth=0.8)
+    #ax2.stackplot(range(length), vollist)
+    #ax2.bar(range(length), vollist)
+    ax2.set_ylabel('Vol')
+    ax2.legend(loc='upper right')
+    # ax2.grid(True)
+    plt.savefig(os.getcwd() + '/data/'+ coin + '.png', dpi=150)
+
+    print('PNG saved!')
     return()
 
-draw('btc')
-draw('eth')
-draw('ltc')
+for coin in coins:
+    draw(coin)

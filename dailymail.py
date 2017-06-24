@@ -1,5 +1,6 @@
-# encoding:utf-8
+﻿# encoding:utf-8
 import urllib.request
+import requests
 import os
 import linecache
 import datetime
@@ -13,43 +14,40 @@ import csv
 import json
 
 now = datetime.datetime.now()
-now.strftime('%Y-%m-%d %H:%M:%S')
 nowtime = now.strftime('%Y-%m-%d %H:%M:%S')
-nowmin = now.strftime('%M')
 print(nowtime)
 
+where_script = os.path.split(os.path.realpath(__file__))[0]
 
-def priceget(name):
-    url = "http://api.btctrade.com/api/ticker?coin=" + name
-    webdata = str(urllib.request.urlopen(url, timeout=10).read())
+coins = ['btc', 'eth', 'ltc', 'doge', 'ybc']
+f = open(where_script + '/setting.json', 'r')
+setting = json.load(f)
+f.close()
+for coin in coins:
+    if setting[coin]['draw'] == 0:
+        coins.remove(coin)
+    else :
+        pass
+# print(coins)
+# 检查设置
+
+def priceget(coin):
+    url = 'https://api.btctrade.com/api/ticker?coin=' + str(coin)
+    response = requests.get(url, timeout=10).text
     # 抓取比特币价格网页
+    js_dict = json.loads(response)
+    return js_dict['last']
 
-    print(webdata)
-
-    a = int(webdata.find('"last":'))
-    # print(lastlocation)
-    b = int(webdata.find(',"vol"'))
-    # print(vollocation)
-    price = webdata[int(a + 7):int(b)]
-
-    if price[0:1] == '"':
-        price2 = price[1:]
-        price = price2
-        # 纠错,最原始的一个可能bug
-    # print(price)
-    return (price)
-    # 价格提取
-
-def  pricelog(name):
+def  pricelog(coin):
     global x, date, y, pricelist, average, standard_deviation, range, variance, pricemax, pricemin
-    with open("data/pricelog-min.csv") as csvfile:
+    with open( where_script + "/data/pricelog_min.csv") as csvfile:
         reader = csv.DictReader(csvfile)
         date = [row['time'] for row in reader]
         csvfile.close()
     x = date
-    with open("data/pricelog-min.csv") as csvfile:
+    with open( where_script + "/data/pricelog_min.csv") as csvfile:
         reader = csv.DictReader(csvfile)
-        pricelist = [row[ name ] for row in reader]
+        pricelist = [row[ coin ] for row in reader]
         csvfile.close()
     y = pricelist
 
@@ -57,7 +55,7 @@ def  pricelog(name):
     for obj in pricelist:
         sum = sum + float(obj)
     # print(sum)
-    average = sum / 1440
+    average = sum / 1442
     average = round(average, 3)
     print('average=', average)
     # 求平均值
@@ -66,7 +64,7 @@ def  pricelog(name):
     for obj in pricelist:
         variance_min = (float(obj) - average) ** 2
         variance_sum = variance_sum + variance_min
-    variance = variance_sum / 1440
+    variance = variance_sum / 1442
     standard_deviation = variance ** 0.5
     standard_deviation = round(standard_deviation, 3)
     variance = round(variance, 3)
@@ -74,33 +72,33 @@ def  pricelog(name):
     print('standard deviation=', standard_deviation)
     # 求方差、标准差
 
-    pricemax = max(pricelist)
-    pricemin = min(pricelist)
-    print(pricemax, pricemin)
-    range = float(pricemax) - float(pricemin)
+    pricemax = float(str(max(pricelist)))
+    pricemin = float(str(min(pricelist)))
+    print(str(pricemax), str(pricemin))
+    range = float(pricemax - pricemin)
     range = round(range, 3)
     print('Range=', range)
     # 求极差
 
     return (x, date, y, pricelist, average, standard_deviation, range, variance, pricemax, pricemin)
 
-def outercontent(name):
-    pricelog(name)
+def outercontent(coin):
+    pricelog(coin)
     contentpart ='''
 <table border="0">
-<tr><th colspan = "2" align="center">''' + str(name.upper()) + '''</th></tr>
-<tr><td>当前价格:</td><td>''' +  priceget(name) + '''</td></th></tr>
+<tr><th colspan = "2" align="center">''' + str(coin.upper()) + '''</th></tr>
+<tr><td>当前价格:</td><td>''' + str(priceget(coin)) + '''</td></th></tr>
 <tr><td>24小时极差:</td><td>''' + str(range) + '''</td></th></tr>
-<tr><td>24小时方差:</td><td>''' +str(variance) + '''</td></tr>
-<tr><td>24小时标准差:</td><td>''' +str(standard_deviation) + '''</td></tr>
-<tr><td>24小时平均值:</td><td>''' +str(average) + '''</td></tr>
-<tr><td>24小时最大值:</td><td>''' +str(pricemax) + '''</td></tr>
-<tr><td>24小时最小值:</td><td>''' +str(pricemin) + '''</td></tr>
-</table>
+<tr><td>24小时方差:</td><td>''' + str(variance) + '''</td></tr>
+<tr><td>24小时标准差:</td><td>''' + str(standard_deviation) + '''</td></tr>
+<tr><td>24小时平均值:</td><td>''' + str(average) + '''</td></tr>
+<tr><td>24小时最大值:</td><td>''' + str(pricemax) + '''</td></tr>
+<tr><td>24小时最小值:</td><td>''' + str(pricemin) + '''</td></tr>
+</table><br>
 '''
     return(contentpart)
 
-f = open(os.getcwd() + '/mailsetting.json', 'r')
+f = open(where_script + '/mailsetting.json', 'r')
 mailjson = json.load(f)
 f.close()
 
@@ -119,15 +117,20 @@ def mailto(receivers):
         receiver = [people]
         print(receiver)
 
-        content = '<html>' + outercontent('btc') + outercontent('eth') + outercontent('ltc') + '</html>'
-        title = '比特币价格:' + priceget('btc')  # 邮件主题
+        content = '<html>'
+        for coin in coins:
+            content = content + outercontent(coin)
+        content = content + '</html>'
+        title = '比特币价格:' + str(priceget('btc'))  # 邮件主题
         message.attach(MIMEText(content, 'html', 'utf-8'))  # 内容, 格式, 编码
 
         message['From'] = "{}".format(sender)
         message['To'] = ",".join(receiver)
         message['Subject'] = title
 
-        file_names = [os.getcwd() + '/data/btc.png',os.getcwd() + '/data/eth.png',os.getcwd() + '/data/ltc.png']
+        file_names = []
+        for coin in coins:
+            file_names.append(where_script + '/data/'+ coin +'.png')
         for file_name in file_names:
             data = open(file_name, 'rb')
             ctype, encoding = mimetypes.guess_type(file_name)
