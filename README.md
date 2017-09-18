@@ -1,3 +1,6 @@
+**已死。**
+**[已死的自动交易新版](https://github.com/Foldblade/btcauto-dead)**
+
 欢迎使用@Foldblade 编写的、基于Python的比特币邮件提醒系统。  
 
 ## 开发的原因：  
